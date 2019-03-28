@@ -1,0 +1,12 @@
+task:
+  conda:       k80
+  qsub:        'qsub -l os=cl7,GPU=1,GPUtype=K80 -q mc_gpu_interactive -pe multicores_gpu 4'
+  #   script:      '~/deeplearning/maldives/yelp/yelp_lstm.py'
+  script:      '~/deeplearning/submission/hello_world.py'
+  output_dir:  '/sps/cms/cbernet/output/test'
+
+parameters: 
+  batch_size:      [20, 30, 40]
+  epochs:          [1, 5]
+  n_neurons_dense: [8]
+
