@@ -10,15 +10,21 @@ from config import JobManager, parameter_grid
 
 
 class TestJobManager(unittest.TestCase): 
-    
+
+    def setUp(self):
+        self.jobmng = JobManager('test.yaml')
+        self.tempdir = tempfile.mkdtemp()
+        self.jobmng.data['task']['output_dir'] = self.tempdir
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
     def test_decode(self):
-        jobmng = JobManager('test.yaml')
-        self.assertEqual(jobmng.script, 'hello_world.py')
-        print(jobmng)
+        self.assertEqual(self.jobmng.script, 'hello_world.py')
+        print(self.jobmng)
 
     def test_grid(self):
-        jobmng = JobManager('test.yaml')
-        names, grid = parameter_grid(jobmng.data['parameters'])
+        names, grid = parameter_grid(self.jobmng.data['parameters'])
         self.assertListEqual(
             grid, 
             [(20, 1, 8), (20, 5, 8), (30, 1, 8), (30, 5, 8), (40, 1, 8), (40, 5, 8)]
@@ -28,7 +34,7 @@ class TestJobManager(unittest.TestCase):
             ['batch_size','epochs','n_neurons_dense']
         )
         self.assertDictEqual(
-            jobmng.data['jobs'], 
+            self.jobmng.data['jobs'], 
             {'batch_size20__epochs1__n_neurons_dense8': (20, 1, 8),
              'batch_size20__epochs5__n_neurons_dense8': (20, 5, 8),
              'batch_size30__epochs1__n_neurons_dense8': (30, 1, 8),
@@ -38,16 +44,16 @@ class TestJobManager(unittest.TestCase):
         )
 
     def test_output_dir(self):
-        jobmng = JobManager('test.yaml')
-        tempdir = tempfile.mkdtemp()
-        jobmng.data['task']['output_dir'] = tempdir
-        jobmng.set_output_dir()
-        self.assertSetEqual( set(os.listdir(tempdir)), 
-                             set(jobmng.data['jobs'].keys())
+        self.jobmng.set_output_dir()
+        self.assertSetEqual( set(os.listdir(self.tempdir)), 
+                             set(self.jobmng.data['jobs'].keys())
         )
-        jobmng.write()
-        self.assertTrue(os.path.isfile(tempdir+'/config.yaml'))
-        shutil.rmtree(tempdir)
+        self.jobmng.write()
+        self.assertTrue(os.path.isfile(self.tempdir+'/config.yaml'))
+
+    def test_run_scripts(self):
+        pass
+
 
 class TestSubmit(unittest.TestCase): 
     

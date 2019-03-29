@@ -50,13 +50,14 @@ class JobManager(object):
         os.chdir(odir)
         for jobname in self.data['jobs'].keys():
             os.mkdir(jobname)
+        os.chdir(oldcwd)
 
     def write(self):
         odir = self.data['task']['output_dir']
         if not os.path.isdir(odir): 
             os.makedirs(odir)
         oldcwd = os.getcwd()     
-   
+        os.chdir(odir)
         with open('config.yaml', 'w') as ofile:
             ofile.write(yaml.dump(
                 self.data
