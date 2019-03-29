@@ -3,6 +3,8 @@ import pprint
 import shutil
 import tempfile
 import os
+import time
+import re
 
 from submit import * 
 from config import JobManager, parameter_grid
@@ -64,8 +66,31 @@ class TestJobManager(unittest.TestCase):
 
 class TestSubmit(unittest.TestCase): 
     
-    def test_1(self):
-        self.assertTrue(True)
+    def test_submit(self):
+        jobmng = JobManager('test_simple.yaml')
+        tempdir = tempfile.mkdtemp()
+        jobmng.data['task']['output_dir'] = tempdir
+        jobmng.set_output_dir()
+        jobmng.write_run_scripts()        
+        jobmng.write_job_scripts()
+        jobmng.submit()
+        time.sleep(0.5)
+        pattern = re.compile('\d+')
+        cwd = os.getcwd()
+        os.chdir(tempdir)
+        for jobname, jobpars in jobmng.data['jobs'].items():
+            os.listdir(jobname)
+            fname = '/'.join([jobname, 'nohup.out'])
+            self.assertTrue(os.path.isfile(fname))
+            with open(fname) as ifile:
+                lines = ifile.readlines()
+                self.assertTrue(len(lines)==1)
+                matches = re.findall(pattern, lines[0])
+                self.assertTrue(len(matches)==3)
+                pars = [int(m) for m in matches]
+                self.assertListEqual(pars, list(jobpars))
+        os.chdir(cwd)
+        
 
 if __name__ == '__main__':
     unittest.main()
