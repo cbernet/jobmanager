@@ -30,7 +30,6 @@ class JobManager(object):
         self._create_jobs()
 
     def _decode(self): 
-        # self.outdir = self.data['task']['output_dir']
         self.script = os.path.basename(self.data['task']['script'])
         parnames, grid = parameter_grid(self.data['parameters'])
         self.data['info'] = {
@@ -64,6 +63,37 @@ class JobManager(object):
                 self.data
             ))
 
+    @outdir 
+    def write_run_scripts(self):
+        for jobname, pars in self.data['jobs'].items():
+            runscript = '''
+{preamble}
+{script} {pars}
+'''.format(
+    preamble = self.data['task']['preamble'],
+    script = self.data['task']['script'],
+    pars = ' '.join(str(par) for par in pars)
+    )
+            fname = '/'.join([jobname, 'run.sh'])
+            with open(fname, 'w') as ofile:
+                ofile.write(runscript)
+
+    @outdir
+    def write_job_scripts(self):
+        runscript=self.data['task']['job_script']
+        for jobname, pars in self.data['jobs'].items():
+            fname = '/'.join([jobname, 'job.sh'])
+            with open(fname, 'w') as ofile:
+                ofile.write(runscript)
+
+    @outdir
+    def submit(self):
+        subcmd = self.data['task']['sub_cmd']
+        for jobname, pars in self.data['jobs'].items():
+            cwd = os.getcwd()
+            os.chdir(jobname)
+            os.system('{} {}'.format(subcmd, 'job.sh'))
+            os.chdir(cwd)
 
     def __str__(self):
         return pprint.pformat(self.data) 

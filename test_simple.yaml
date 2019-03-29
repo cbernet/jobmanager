@@ -1,0 +1,15 @@
+task:
+  conda:       k80
+  sub_cmd:     nohup bash
+  script:      ~/deeplearning/submission/hello_world.py
+  output_dir:  test_outdir
+  preamble: |
+    #!/bin/bash
+  job_script: |
+    #!/bin/bash 
+    bash run.sh
+parameters: 
+  batch_size:      [20, 30, 40]
+  epochs:          [1, 5]
+  n_neurons_dense: [8]
+

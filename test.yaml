@@ -1,10 +1,16 @@
 task:
   conda:       k80
-  qsub:        'qsub -l os=cl7,GPU=1,GPUtype=K80 -q mc_gpu_interactive -pe multicores_gpu 4'
+  sub_cmd:        qsub -l os=cl7,GPU=1,GPUtype=K80 -q mc_gpu_interactive -pe multicores_gpu 4
   #   script:      '~/deeplearning/maldives/yelp/yelp_lstm.py'
-  script:      '~/deeplearning/submission/hello_world.py'
-  output_dir:  '/sps/cms/cbernet/output/test'
-
+  script:      ~/deeplearning/submission/hello_world.py
+  output_dir:  /sps/cms/cbernet/output/test
+  preamble: |
+    #!/bin/bash
+    . ~/miniconda3/etc/profile.d/conda.sh
+    conda activate k80
+  job_script: |
+    #!/bin/bash 
+    /usr/bin/singularity exec --nv --bind /pbs:/pbs --bind /sps:/sps /cvmfs/singularity.in2p3.fr/images/HPC/GPU/centos7_cuda9-2_cudnn7-3_nccl2-2-12.simg run.sh
 parameters: 
   batch_size:      [20, 30, 40]
   epochs:          [1, 5]

@@ -52,8 +52,15 @@ class TestJobManager(unittest.TestCase):
         self.assertTrue(os.path.isfile(self.tempdir+'/config.yaml'))
 
     def test_run_scripts(self):
-        pass
-
+        self.jobmng.set_output_dir()
+        self.jobmng.write_run_scripts()
+        cwd = os.getcwd()
+        os.chdir(self.tempdir)
+        for jobname in self.jobmng.data['jobs'].keys():
+            os.listdir(jobname)
+            fname = '/'.join([jobname, 'run.sh'])
+            self.assertTrue(os.path.isfile(fname))
+        os.chdir(cwd)
 
 class TestSubmit(unittest.TestCase): 
     
