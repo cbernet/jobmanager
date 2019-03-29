@@ -9,6 +9,16 @@ def parameter_grid(parameter_dict):
     grid = [x for x in itertools.product(*values)]
     return list(parameter_dict.keys()), grid
 
+def outdir(func):
+    def wrapped(self, *args, **kwargs):
+        odir = self.data['task']['output_dir']
+        if not os.path.isdir(odir): 
+            os.makedirs(odir)
+        oldcwd = os.getcwd()
+        os.chdir(odir)
+        func(self, *args, **kwargs)
+        os.chdir(oldcwd)
+    return wrapped
 
 class JobManager(object): 
     
@@ -42,27 +52,18 @@ class JobManager(object):
             jobs['__'.join(namefields)] = vals
         self.data['jobs'] = jobs
 
+    @outdir
     def set_output_dir(self):
-        odir = self.data['task']['output_dir']
-        if not os.path.isdir(odir): 
-            os.makedirs(odir)
-        oldcwd = os.getcwd()
-        os.chdir(odir)
         for jobname in self.data['jobs'].keys():
             os.mkdir(jobname)
-        os.chdir(oldcwd)
 
+    @outdir
     def write(self):
-        odir = self.data['task']['output_dir']
-        if not os.path.isdir(odir): 
-            os.makedirs(odir)
-        oldcwd = os.getcwd()     
-        os.chdir(odir)
         with open('config.yaml', 'w') as ofile:
             ofile.write(yaml.dump(
                 self.data
             ))
-        os.chdir(oldcwd)
+
 
     def __str__(self):
         return pprint.pformat(self.data) 
